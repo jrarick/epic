@@ -23,7 +23,7 @@ type User = {
 	id: string
 	email: string
 	username: string
-	name: string | null
+	firstName: string | null
 }
 
 async function getOrInsertUser({
@@ -32,7 +32,7 @@ async function getOrInsertUser({
 	password,
 	email,
 }: GetOrInsertUserOptions = {}): Promise<User> {
-	const select = { id: true, email: true, username: true, name: true }
+	const select = { id: true, email: true, username: true, firstName: true }
 	if (id) {
 		return await prisma.user.findUniqueOrThrow({
 			select,
@@ -62,7 +62,7 @@ export const test = base.extend<{
 }>({
 	insertNewUser: async ({}, use) => {
 		let userId: string | undefined = undefined
-		await use(async options => {
+		await use(async (options) => {
 			const user = await getOrInsertUser(options)
 			userId = user.id
 			return user
@@ -71,7 +71,7 @@ export const test = base.extend<{
 	},
 	login: async ({ page }, use) => {
 		let userId: string | undefined = undefined
-		await use(async options => {
+		await use(async (options) => {
 			const user = await getOrInsertUser(options)
 			userId = user.id
 			const session = await prisma.session.create({
@@ -120,7 +120,7 @@ export async function waitFor<ReturnValue>(
 		} catch (e: unknown) {
 			lastError = e
 		}
-		await new Promise(r => setTimeout(r, 100))
+		await new Promise((r) => setTimeout(r, 100))
 	}
 	throw lastError
 }

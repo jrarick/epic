@@ -25,7 +25,7 @@ export function useUser() {
 }
 
 type Action = 'create' | 'read' | 'update' | 'delete'
-type Entity = 'user' | 'note'
+type Entity = 'user' | 'note' | 'jobPosting' | 'role'
 type Access = 'own' | 'any' | 'own,any' | 'any,own'
 export type PermissionString =
 	| `${Action}:${Entity}`
@@ -50,9 +50,9 @@ export function userHasPermission(
 ) {
 	if (!user) return false
 	const { action, entity, access } = parsePermissionString(permission)
-	return user.roles.some(role =>
+	return user.roles.some((role) =>
 		role.permissions.some(
-			permission =>
+			(permission) =>
 				permission.entity === entity &&
 				permission.action === action &&
 				(!access || access.includes(permission.access)),
@@ -65,5 +65,5 @@ export function userHasRole(
 	role: string,
 ) {
 	if (!user) return false
-	return user.roles.some(r => r.name === role)
+	return user.roles.some((r) => r.name === role)
 }

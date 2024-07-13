@@ -18,7 +18,7 @@ test('The user profile when not logged in as self', async () => {
 	const userImage =
 		userImages[faker.number.int({ min: 0, max: userImages.length - 1 })]
 	const user = await prisma.user.create({
-		select: { id: true, username: true, name: true },
+		select: { id: true, username: true, firstName: true },
 		data: { ...createUser(), image: { create: userImage } },
 	})
 	const App = createRemixStub([
@@ -32,9 +32,9 @@ test('The user profile when not logged in as self', async () => {
 	const routeUrl = `/users/${user.username}`
 	render(<App initialEntries={[routeUrl]} />)
 
-	await screen.findByRole('heading', { level: 1, name: user.name! })
-	await screen.findByRole('img', { name: user.name! })
-	await screen.findByRole('link', { name: `${user.name}'s notes` })
+	await screen.findByRole('heading', { level: 1, name: user.firstName! })
+	await screen.findByRole('img', { name: user.firstName! })
+	await screen.findByRole('link', { name: `${user.firstName}'s notes` })
 })
 
 test('The user profile when logged in as self', async () => {
@@ -42,7 +42,7 @@ test('The user profile when logged in as self', async () => {
 	const userImage =
 		userImages[faker.number.int({ min: 0, max: userImages.length - 1 })]
 	const user = await prisma.user.create({
-		select: { id: true, username: true, name: true },
+		select: { id: true, username: true, firstName: true },
 		data: { ...createUser(), image: { create: userImage } },
 	})
 	const session = await prisma.session.create({
@@ -87,8 +87,8 @@ test('The user profile when logged in as self', async () => {
 	const routeUrl = `/users/${user.username}`
 	await render(<App initialEntries={[routeUrl]} />)
 
-	await screen.findByRole('heading', { level: 1, name: user.name! })
-	await screen.findByRole('img', { name: user.name! })
+	await screen.findByRole('heading', { level: 1, name: user.firstName! })
+	await screen.findByRole('img', { name: user.firstName! })
 	await screen.findByRole('button', { name: /logout/i })
 	await screen.findByRole('link', { name: /my notes/i })
 	await screen.findByRole('link', { name: /edit profile/i })

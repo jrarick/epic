@@ -48,13 +48,7 @@ const customTwMerge = extendTailwindMerge<string, string>({
 			colors: formatColors(),
 			borderRadius: Object.keys(extendedTheme.borderRadius),
 		},
-		classGroups: {
-			'font-size': [
-				{
-					text: Object.keys(extendedTheme.fontSize),
-				},
-			],
-		},
+		classGroups: {},
 	},
 })
 
@@ -286,4 +280,73 @@ export async function downloadFile(url: string, retries: number = 0) {
 		if (retries > MAX_RETRIES) throw e
 		return downloadFile(url, retries + 1)
 	}
+}
+
+export function timeSincePosted(date: string) {
+	const now = new Date()
+	const then = new Date(date)
+	then.setHours(0, 0, 0, 0)
+	const diff = now.getTime() - then.getTime()
+	const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+	const isLeapYear = (now: Date) => {
+		const year = now.getFullYear()
+		return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0
+	}
+	const averageDaysInMonth = isLeapYear(now) ? 30.5 : 30.417
+	if (days > 90) {
+		return `${Math.round(days / 30.44)} months ago`
+	} else if (days === 0) {
+		return 'Today'
+	} else if (days === 1) {
+		return 'Yesterday'
+	} else if (days === 7) {
+		return '1 week ago'
+	} else if (
+		(Math.floor(days % averageDaysInMonth) < 3 ||
+			Math.floor(days % averageDaysInMonth) > 28) &&
+		days < 34 &&
+		days > 28
+	) {
+		return '1 month ago'
+	} else if (
+		days > 56 &&
+		(Math.floor(days % averageDaysInMonth) < 3 ||
+			Math.floor(days % averageDaysInMonth) > 28)
+	) {
+		return `${Math.round(days / 30.44)} months ago`
+	} else if (days % 7 === 0 && days <= 90) {
+		return `${days / 7} weeks ago`
+	} else if (days > 33) {
+		return `${Math.round(days / 7)} weeks ago`
+	} else {
+		return `${days} days ago`
+	}
+}
+
+export function formatMoney(amount: number) {
+	return amount.toLocaleString('en-US', {
+		style: 'currency',
+		currency: 'USD',
+		minimumFractionDigits: 0,
+	})
+}
+
+export function formatSalaryString(
+	salaryMin?: number | null,
+	salaryMax?: number | null,
+	salaryType?: string | null,
+) {
+	if (!salaryMin && !salaryMax) {
+		return 'Not specified'
+	}
+	if (salaryMin && !salaryMax) {
+		return `${formatMoney(salaryMin)} ${salaryType}`
+	}
+	if (!salaryMin && salaryMax) {
+		return `${formatMoney(salaryMax)} ${salaryType}`
+	}
+	if (salaryMin && salaryMax && salaryMin === salaryMax) {
+		return `${formatMoney(salaryMin)} ${salaryType}`
+	}
+	return `${formatMoney(salaryMin!)} - ${formatMoney(salaryMax!)} ${salaryType}`
 }

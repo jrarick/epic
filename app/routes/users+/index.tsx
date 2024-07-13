@@ -10,7 +10,7 @@ import { cn, getUserImgSrc, useDelayedIsPending } from '#app/utils/misc.tsx'
 const UserSearchResultSchema = z.object({
 	id: z.string(),
 	username: z.string(),
-	name: z.string().nullable(),
+	firstName: z.string().nullable(),
 	imageId: z.string().nullable(),
 })
 
@@ -24,11 +24,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 	const like = `%${searchTerm ?? ''}%`
 	const rawUsers = await prisma.$queryRaw`
-		SELECT User.id, User.username, User.name, UserImage.id AS imageId
+		SELECT User.id, User.username, User.firstName, UserImage.id AS imageId
 		FROM User
 		LEFT JOIN UserImage ON User.id = UserImage.userId
 		WHERE User.username LIKE ${like}
-		OR User.name LIKE ${like}
+		OR User.firstName LIKE ${like}
 		ORDER BY (
 			SELECT Note.updatedAt
 			FROM Note
@@ -61,7 +61,7 @@ export default function UsersRoute() {
 
 	return (
 		<div className="container mb-48 mt-36 flex flex-col items-center justify-center gap-6">
-			<h1 className="text-h1">Epic Notes Users</h1>
+			<h1 className="text-h1">Users</h1>
 			<div className="w-full max-w-[700px]">
 				<SearchBar status={data.status} autoFocus autoSubmit />
 			</div>
@@ -74,23 +74,23 @@ export default function UsersRoute() {
 								{ 'opacity-50': isPending },
 							)}
 						>
-							{data.users.map(user => (
+							{data.users.map((user) => (
 								<li key={user.id}>
 									<Link
 										to={user.username}
 										className="flex h-36 w-44 flex-col items-center justify-center rounded-lg bg-muted px-5 py-3"
 									>
 										<img
-											alt={user.name ?? user.username}
+											alt={user.firstName ?? user.username}
 											src={getUserImgSrc(user.imageId)}
 											className="h-16 w-16 rounded-full"
 										/>
-										{user.name ? (
-											<span className="w-full overflow-hidden text-ellipsis whitespace-nowrap text-center text-body-md">
-												{user.name}
+										{user.firstName ? (
+											<span className="text-body-md w-full overflow-hidden text-ellipsis whitespace-nowrap text-center">
+												{user.firstName}
 											</span>
 										) : null}
-										<span className="w-full overflow-hidden text-ellipsis text-center text-body-sm text-muted-foreground">
+										<span className="text-body-sm w-full overflow-hidden text-ellipsis text-center text-muted-foreground">
 											{user.username}
 										</span>
 									</Link>

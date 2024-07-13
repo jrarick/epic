@@ -1,6 +1,7 @@
 import { useInputControl } from '@conform-to/react'
 import { REGEXP_ONLY_DIGITS_AND_CHARS, type OTPInputProps } from 'input-otp'
 import React, { useId } from 'react'
+import { cn } from '#app/utils/misc.tsx'
 import { Checkbox, type CheckboxProps } from './ui/checkbox.tsx'
 import {
 	InputOTP,
@@ -25,8 +26,8 @@ export function ErrorList({
 	if (!errorsToRender?.length) return null
 	return (
 		<ul id={id} className="flex flex-col gap-1">
-			{errorsToRender.map(e => (
-				<li key={e} className="text-[10px] text-foreground-destructive">
+			{errorsToRender.map((e) => (
+				<li key={e} className="text-xs text-destructive">
 					{e}
 				</li>
 			))}
@@ -49,14 +50,67 @@ export function Field({
 	const id = inputProps.id ?? fallbackId
 	const errorId = errors?.length ? `${id}-error` : undefined
 	return (
-		<div className={className}>
+		<div className={cn('grid max-w-lg gap-1.5', className)}>
 			<Label htmlFor={id} {...labelProps} />
 			<Input
 				id={id}
 				aria-invalid={errorId ? true : undefined}
 				aria-describedby={errorId}
 				{...inputProps}
+				className={
+					errors
+						? 'outline-none ring-2 ring-destructive ring-offset-2 focus-visible:ring-destructive'
+						: ''
+				}
 			/>
+			<div className="min-h-[32px] px-4 pb-3 pt-1">
+				{errorId ? <ErrorList id={errorId} errors={errors} /> : null}
+			</div>
+		</div>
+	)
+}
+
+export function SelectField({
+	labelProps,
+	selectProps,
+	items,
+	errors,
+	className,
+}: {
+	labelProps: React.LabelHTMLAttributes<HTMLLabelElement>
+	selectProps: React.SelectHTMLAttributes<HTMLSelectElement>
+	items: Array<{ name: string; value: string }>
+	placeholder?: string
+	errors?: ListOfErrors
+	className?: string
+}) {
+	const fallbackId = useId()
+	const id = selectProps.id ?? fallbackId
+	const errorId = errors?.length ? `${id}-error` : undefined
+
+	return (
+		<div className={cn('grid max-w-lg gap-1.5', className)}>
+			<Label htmlFor={id} {...labelProps} />
+			<select
+				id={id}
+				aria-invalid={errorId ? true : undefined}
+				aria-describedby={errorId}
+				className={cn(
+					'aria-[invalid]:border-input-invalid flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+					{
+						'outline-none ring-2 ring-destructive ring-offset-2 focus-visible:ring-destructive':
+							errors,
+					},
+				)}
+				{...selectProps}
+			>
+				<option value="" hidden />
+				{items.map((item) => (
+					<option key={item.value} value={item.value}>
+						{item.name}
+					</option>
+				))}
+			</select>
 			<div className="min-h-[32px] px-4 pb-3 pt-1">
 				{errorId ? <ErrorList id={errorId} errors={errors} /> : null}
 			</div>
@@ -174,15 +228,15 @@ export function CheckboxField({
 					aria-invalid={errorId ? true : undefined}
 					aria-describedby={errorId}
 					checked={input.value === checkedValue}
-					onCheckedChange={state => {
+					onCheckedChange={(state) => {
 						input.change(state.valueOf() ? checkedValue : '')
 						buttonProps.onCheckedChange?.(state)
 					}}
-					onFocus={event => {
+					onFocus={(event) => {
 						input.focus()
 						buttonProps.onFocus?.(event)
 					}}
-					onBlur={event => {
+					onBlur={(event) => {
 						input.blur()
 						buttonProps.onBlur?.(event)
 					}}
@@ -191,7 +245,7 @@ export function CheckboxField({
 				<label
 					htmlFor={id}
 					{...labelProps}
-					className="self-center text-body-xs text-muted-foreground"
+					className="text-body-xs self-center text-muted-foreground"
 				/>
 			</div>
 			<div className="px-4 pb-3 pt-1">

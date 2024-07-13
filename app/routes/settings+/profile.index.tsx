@@ -11,6 +11,7 @@ import { Link, useFetcher, useLoaderData } from '@remix-run/react'
 import { z } from 'zod'
 import { ErrorList, Field } from '#app/components/forms.tsx'
 import { Button } from '#app/components/ui/button.tsx'
+import { Card } from '#app/components/ui/card.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
 import { requireUserId, sessionKey } from '#app/utils/auth.server.ts'
@@ -18,15 +19,14 @@ import { prisma } from '#app/utils/db.server.ts'
 import { getUserImgSrc, useDoubleCheck } from '#app/utils/misc.tsx'
 import { authSessionStorage } from '#app/utils/session.server.ts'
 import { redirectWithToast } from '#app/utils/toast.server.ts'
-import { NameSchema, UsernameSchema } from '#app/utils/user-validation.ts'
-import { twoFAVerificationType } from './profile.two-factor.tsx'
+import { FirstNameSchema, UsernameSchema } from '#app/utils/user-validation.ts'
 
 export const handle: SEOHandle = {
 	getSitemapEntries: () => null,
 }
 
 const ProfileFormSchema = z.object({
-	name: NameSchema.optional(),
+	firstName: FirstNameSchema.optional(),
 	username: UsernameSchema,
 })
 
@@ -36,7 +36,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 		where: { id: userId },
 		select: {
 			id: true,
-			name: true,
+			firstName: true,
 			username: true,
 			email: true,
 			image: {
@@ -54,11 +54,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 		},
 	})
 
-	const twoFactorVerification = await prisma.verification.findUnique({
-		select: { id: true },
-		where: { target_type: { type: twoFAVerificationType, target: userId } },
-	})
-
 	const password = await prisma.password.findUnique({
 		select: { userId: true },
 		where: { userId },
@@ -67,7 +62,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 	return json({
 		user,
 		hasPassword: Boolean(password),
-		isTwoFactorEnabled: Boolean(twoFactorVerification),
 	})
 }
 
@@ -104,75 +98,59 @@ export default function EditUserProfile() {
 	const data = useLoaderData<typeof loader>()
 
 	return (
-		<div className="flex flex-col gap-12">
-			<div className="flex justify-center">
-				<div className="relative h-52 w-52">
-					<img
-						src={getUserImgSrc(data.user.image?.id)}
-						alt={data.user.username}
-						className="h-full w-full rounded-full object-cover"
-					/>
-					<Button
-						asChild
-						variant="outline"
-						className="absolute -right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full p-0"
-					>
-						<Link
-							preventScrollReset
-							to="photo"
-							title="Change profile photo"
-							aria-label="Change profile photo"
+		<Card className="p-6">
+			<div className="flex flex-col gap-12">
+				<div className="flex justify-center">
+					<div className="relative h-52 w-52">
+						<img
+							src={getUserImgSrc(data.user.image?.id)}
+							alt={data.user.username}
+							className="h-full w-full rounded-full object-cover"
+						/>
+						<Button
+							asChild
+							variant="outline"
+							className="absolute -right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full p-0"
 						>
-							<Icon name="camera" className="h-4 w-4" />
-						</Link>
-					</Button>
+							<Link
+								preventScrollReset
+								to="photo"
+								title="Change profile photo"
+								aria-label="Change profile photo"
+							>
+								<Icon name="camera" className="h-4 w-4" />
+							</Link>
+						</Button>
+					</div>
 				</div>
-			</div>
-			<UpdateProfile />
+				<UpdateProfile />
 
-			<div className="col-span-6 my-6 h-1 border-b-[1.5px] border-foreground" />
-			<div className="col-span-full flex flex-col gap-6">
-				<div>
-					<Link to="change-email">
-						<Icon name="envelope-closed">
-							Change email from {data.user.email}
-						</Icon>
-					</Link>
+				<div className="col-span-6 my-6 h-1 border-b-[1.5px] border-foreground" />
+				<div className="col-span-full flex flex-col gap-6">
+					<div>
+						<Link to="change-email">
+							<Icon name="envelope-closed">
+								Change email (currently {data.user.email})
+							</Icon>
+						</Link>
+					</div>
+					<div>
+						<Link to={data.hasPassword ? 'password' : 'password/create'}>
+							<Icon name="dots-horizontal">
+								{data.hasPassword ? 'Change Password' : 'Create a Password'}
+							</Icon>
+						</Link>
+					</div>
+					<div>
+						<Link to="connections">
+							<Icon name="link-2">Manage connections</Icon>
+						</Link>
+					</div>
+					<SignOutOfSessions />
+					<DeleteData />
 				</div>
-				<div>
-					<Link to="two-factor">
-						{data.isTwoFactorEnabled ? (
-							<Icon name="lock-closed">2FA is enabled</Icon>
-						) : (
-							<Icon name="lock-open-1">Enable 2FA</Icon>
-						)}
-					</Link>
-				</div>
-				<div>
-					<Link to={data.hasPassword ? 'password' : 'password/create'}>
-						<Icon name="dots-horizontal">
-							{data.hasPassword ? 'Change Password' : 'Create a Password'}
-						</Icon>
-					</Link>
-				</div>
-				<div>
-					<Link to="connections">
-						<Icon name="link-2">Manage connections</Icon>
-					</Link>
-				</div>
-				<div>
-					<Link
-						reloadDocument
-						download="my-epic-notes-data.json"
-						to="/resources/download-user-data"
-					>
-						<Icon name="download">Download your data</Icon>
-					</Link>
-				</div>
-				<SignOutOfSessions />
-				<DeleteData />
 			</div>
-		</div>
+		</Card>
 	)
 }
 
@@ -206,7 +184,7 @@ async function profileUpdateAction({ userId, formData }: ProfileActionArgs) {
 		select: { username: true },
 		where: { id: userId },
 		data: {
-			name: data.name,
+			firstName: data.firstName,
 			username: data.username,
 		},
 	})
@@ -230,7 +208,7 @@ function UpdateProfile() {
 		},
 		defaultValue: {
 			username: data.user.username,
-			name: data.user.name,
+			firstName: data.user.firstName,
 		},
 	})
 
@@ -248,9 +226,9 @@ function UpdateProfile() {
 				/>
 				<Field
 					className="col-span-3"
-					labelProps={{ htmlFor: fields.name.id, children: 'Name' }}
-					inputProps={getInputProps(fields.name, { type: 'text' })}
-					errors={fields.name.errors}
+					labelProps={{ htmlFor: fields.firstName.id, children: 'Name' }}
+					inputProps={getInputProps(fields.firstName, { type: 'text' })}
+					errors={fields.firstName.errors}
 				/>
 			</div>
 
@@ -259,7 +237,6 @@ function UpdateProfile() {
 			<div className="mt-8 flex justify-center">
 				<StatusButton
 					type="submit"
-					size="wide"
 					name="intent"
 					value={profileUpdateActionIntent}
 					status={fetcher.state !== 'idle' ? 'pending' : form.status ?? 'idle'}

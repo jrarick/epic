@@ -10,6 +10,14 @@ import {
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { z } from 'zod'
 import { ErrorList, Field } from '#app/components/forms.tsx'
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardFooter,
+	CardHeader,
+	CardTitle,
+} from '#app/components/ui/card.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
 import {
@@ -119,14 +127,17 @@ export default function ChangeEmailIndex() {
 
 	const isPending = useIsPending()
 	return (
-		<div>
-			<h1 className="text-h1">Change Email</h1>
-			<p>You will receive an email at the new email address to confirm.</p>
-			<p>
-				An email notice will also be sent to your old address {data.user.email}.
-			</p>
-			<div className="mx-auto mt-5 max-w-sm">
-				<Form method="POST" {...getFormProps(form)}>
+		<Card className="max-w-lg">
+			<CardHeader>
+				<CardTitle>Change Email</CardTitle>
+				<CardDescription>
+					You will receive an email at the new email address to confirm. An
+					email notice will also be sent to your old address {data.user.email}.
+				</CardDescription>
+			</CardHeader>
+
+			<Form method="POST" {...getFormProps(form)}>
+				<CardContent className="max-w-sm pb-0">
 					<Field
 						labelProps={{ children: 'New Email' }}
 						inputProps={{
@@ -136,15 +147,13 @@ export default function ChangeEmailIndex() {
 						errors={fields.email.errors}
 					/>
 					<ErrorList id={form.errorId} errors={form.errors} />
-					<div>
-						<StatusButton
-							status={isPending ? 'pending' : form.status ?? 'idle'}
-						>
-							Send Confirmation
-						</StatusButton>
-					</div>
-				</Form>
-			</div>
-		</div>
+				</CardContent>
+				<CardFooter>
+					<StatusButton status={isPending ? 'pending' : form.status ?? 'idle'}>
+						Send Confirmation
+					</StatusButton>
+				</CardFooter>
+			</Form>
+		</Card>
 	)
 }

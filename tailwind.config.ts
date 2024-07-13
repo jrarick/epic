@@ -15,8 +15,12 @@ export default {
 				'2xl': '1400px',
 			},
 		},
+		fontFamily: {
+			sans: ['ibm-plex-sans', 'sans-serif'],
+			display: ['brandon-grotesque', 'sans-serif'],
+		},
 		extend: extendedTheme,
 	},
 	presets: [marketingPreset],
-	plugins: [animatePlugin, radixPlugin],
+	plugins: [animatePlugin, radixPlugin, require('@tailwindcss/typography')],
 } satisfies Config

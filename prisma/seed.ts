@@ -142,7 +142,8 @@ async function seed() {
 		data: {
 			email: 'kody@kcd.dev',
 			username: 'kody',
-			name: 'Kody',
+			firstName: 'Kody',
+			lastName: 'Smith',
 			image: { create: kodyImages.kodyUser },
 			password: { create: createPassword('kodylovesyou') },
 			connections: {

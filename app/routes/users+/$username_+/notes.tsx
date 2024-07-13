@@ -11,7 +11,7 @@ export async function loader({ params }: LoaderFunctionArgs) {
 	const owner = await prisma.user.findFirst({
 		select: {
 			id: true,
-			name: true,
+			firstName: true,
 			username: true,
 			image: { select: { id: true } },
 			notes: { select: { id: true, title: true } },
@@ -28,7 +28,7 @@ export default function NotesRoute() {
 	const data = useLoaderData<typeof loader>()
 	const user = useOptionalUser()
 	const isOwner = user?.id === data.owner.id
-	const ownerDisplayName = data.owner.name ?? data.owner.username
+	const ownerDisplayName = data.owner.firstName ?? data.owner.username
 	const navLinkDefaultClassName =
 		'line-clamp-2 block rounded-l-full py-2 pl-8 pr-6 text-base lg:text-xl'
 	return (
